@@ -45,7 +45,7 @@ class SIC_Line: #指令類別
                 #實指令皆為3byte (format 1/2/4指令 只存在於XE)
                 self.isDirectives = False
                 return 3
-        return self.length #不應該執行到這裡
+        return self.length #回傳長度
     
     def pass2(self):
         if self.isDirectives:
@@ -54,7 +54,7 @@ class SIC_Line: #指令類別
         if self.operands != '' and self.operands.endswith(',X'):
             addressing_Mode = 0x8000
             self.operands = self.operands.removesuffix(',X')
-        self.object_Code = Opcode[self.mnemonic_Opcode] + hex(SYMTAB[self.operands] + addressing_Mode).rjust(4, '0').removeprefix('0x')
+        self.object_Code = Opcode[self.mnemonic_Opcode] + hex(SYMTAB[self.operands] + addressing_Mode).removeprefix('0x').rjust(4, '0')
     
     def pass1(self): #計算位置存入SYSTAB 處理虛指令
         global current_Address

@@ -53,7 +53,6 @@ public:
         {
             stringstream ss;
             start_Address = stoi(operands, 0, 16);
-            cout << "Start Address: " << hex << start_Address << endl;
             address = start_Address;
             ss << "H" << setw(6) << setfill(' ') << left << address_Label << setw(6) << setfill('0') << hex << right << start_Address;
             getline(ss, object_Code);
