@@ -10,6 +10,8 @@ using namespace std;
 class SIC_Line;
 int current_Address=0;
 int start_Address;
+ofstream output("output.txt", ios::out);
+ofstream loc("loc.txt", ios::out);
 vector<SIC_Line> SIC_Program;
 map<string, int> SYMTAB;
 map<string, string> Opcode = {
@@ -46,6 +48,8 @@ public:
         {
             SYMTAB[address_Label]=address;
         }
+        loc << uppercase << setw(4) << setfill('0') << hex << address<<"\t";
+        loc << address_Label << "\t" << mnemonic_Opcode << "\t" << operands << endl;
     }
     int cal_Size()//計算大小同時生成虛指令的物件碼
     {
@@ -62,8 +66,7 @@ public:
         if (mnemonic_Opcode == "END")
         {
             stringstream ss;
-            //undone
-            ss << "H" << setw(6) << setfill('0') << hex << start_Address;
+            ss << "E" << setw(6) << setfill('0') << hex << start_Address;
             ss >> object_Code;
             return 0;
         }
@@ -105,6 +108,7 @@ public:
     }
     void pass2()
     {
+      
         if(isDirectives==false)
         {
             int addressing_Mode = 0;
@@ -120,11 +124,15 @@ public:
             ss >> object_Code;
             object_Code = Opcode[mnemonic_Opcode]+ object_Code;
         }
+        output <<uppercase<< setw(4) << setfill('0') << hex << address << "\t";
+        output << address_Label << "\t" << mnemonic_Opcode << "\t" << operands;
+        if (!isDirectives || mnemonic_Opcode == "BYTE" || mnemonic_Opcode == "WORD")output << "\t" << object_Code;
+        output << endl;
     }
 };
 int main()
 {
-    ifstream input_File("input1.txt",ios::in);
+    ifstream input_File("input.txt",ios::in);
     if (input_File.is_open())
     {
         string input_Line;
@@ -138,11 +146,10 @@ int main()
     for (auto& L : SIC_Program)L.print();//偵錯用
     for (auto& L : SIC_Program)L.pass2();
     for (auto& L : SIC_Program)L.print();//偵錯用
-    ofstream output_File("objectcode.txt", ios::out);
-    if (output_File.is_open())
+    ofstream objectcode("objectcode.txt", ios::out);
+    if (objectcode.is_open())
     {
-        output_File << uppercase << SIC_Program[0].object_Code << hex << setw(6) << setfill('0') << current_Address - start_Address << endl;
-        int count = 0, length = 0;
+        objectcode << uppercase << SIC_Program[0].object_Code << hex << setw(6) << setfill('0') << current_Address - start_Address << endl;
         int line_Start_Address = -1;
         string line_Object_Code = "";
         for (int i = 1; i < SIC_Program.size() - 1; i++)
@@ -152,15 +159,15 @@ int main()
             line_Object_Code += SIC_Program[i].object_Code;
             if (line_Object_Code.length() +SIC_Program[i+1].object_Code.length()>60 || SIC_Program[i + 1].object_Code == "" || SIC_Program[i + 1].mnemonic_Opcode == "END")//若長度達到極限(加上下一筆超過60個字元) 或是下一行並無物件碼/為END則輸出 
             {
-                output_File << "T" << uppercase << setw(6) << setfill('0') << hex << line_Start_Address << setw(2) << setfill('0') << hex << line_Object_Code.length() / 2 << line_Object_Code<<endl;
-                count = 0;
-                length = 0;
+                objectcode << "T" << uppercase << setw(6) << setfill('0') << hex << line_Start_Address << setw(2) << setfill('0') << hex << line_Object_Code.length() / 2 << line_Object_Code<<endl;
                 line_Start_Address = -1;
                 line_Object_Code = "";
             }
         }
-        output_File << uppercase << SIC_Program[SIC_Program.size() - 1].object_Code;
-        output_File.close();
+        objectcode << uppercase << SIC_Program[SIC_Program.size() - 1].object_Code;
+        objectcode.close();
+        output.close();
+        loc.close();
     }
     return 0;
 }
