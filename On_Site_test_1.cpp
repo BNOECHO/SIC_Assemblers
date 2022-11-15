@@ -1,6 +1,5 @@
 ﻿#include <iostream>
 #include<iomanip>
-#include<istream>
 #include<fstream>
 #include<string>
 #include<sstream>
@@ -112,21 +111,21 @@ public:
         if(isDirectives==false)
         {
             int addressing_Mode = 0;
-            if (operands!="" && operands[operands.length() - 1] == 'X')
+            if (operands!="" && operands[operands.length() - 1] == ',')//若倒數第二個為','(,X結尾 不會出現其他例外) 將索引定址模式設為1(0x8000) 
             {
                 stringstream ss;
                 ss << operands;
-                getline(ss, operands, ',');
+                getline(ss, operands, ',');//進行分割 去除",X"
                 addressing_Mode = 0x8000;
             }
             stringstream ss;
-            ss << hex << uppercase << setw(4) << setfill('0') << (SYMTAB[operands]+addressing_Mode);
+            ss << hex << uppercase << setw(4) << setfill('0') << (SYMTAB[operands]+addressing_Mode);//先將address欄位輸出
             ss >> object_Code;
-            object_Code = Opcode[mnemonic_Opcode]+ object_Code;
+            object_Code = Opcode[mnemonic_Opcode]+ object_Code;//再拼上opcode
         }
-        output <<uppercase<< setw(4) << setfill('0') << hex << address << "\t";
+        output <<uppercase<< setw(4) << setfill('0') << hex << address << "\t";//輸出 output.txt
         output << address_Label << "\t" << mnemonic_Opcode << "\t" << operands;
-        if (!isDirectives || mnemonic_Opcode == "BYTE" || mnemonic_Opcode == "WORD")output << "\t" << object_Code;
+        if (!isDirectives || mnemonic_Opcode == "BYTE" || mnemonic_Opcode == "WORD")output << "\t" << object_Code;//只有實指令 BYTE WORD 需要輸出物件碼
         output << endl;
     }
 };
@@ -149,22 +148,24 @@ int main()
     ofstream objectcode("objectcode.txt", ios::out);
     if (objectcode.is_open())
     {
-        objectcode << uppercase << SIC_Program[0].object_Code << hex << setw(6) << setfill('0') << current_Address - start_Address << endl;
+        objectcode << uppercase << SIC_Program[0].object_Code << hex << setw(6) << setfill('0') << current_Address - start_Address << endl;//輸出H紀錄 分別為( H+程式名稱(6格寬)+起始位置 )+ 總程式長度 前者已於PASS1完成
+        //T紀錄為 T+起始位置+長度(BYTE)+物件碼
         int line_Start_Address = -1;
         string line_Object_Code = "";
         for (int i = 1; i < SIC_Program.size() - 1; i++)
         {
             if (SIC_Program[i].object_Code == "")continue;//如果為空則跳過
-            if (line_Start_Address == -1)line_Start_Address = SIC_Program[i].address;//紀錄該行開頭的位置
-            line_Object_Code += SIC_Program[i].object_Code;
-            if (line_Object_Code.length() +SIC_Program[i+1].object_Code.length()>60 || SIC_Program[i + 1].object_Code == "" || SIC_Program[i + 1].mnemonic_Opcode == "END")//若長度達到極限(加上下一筆超過60個字元) 或是下一行並無物件碼/為END則輸出 
+            if (line_Start_Address == -1)line_Start_Address = SIC_Program[i].address;//若為開頭(尚無紀錄) 則紀錄該行開頭的位置
+            line_Object_Code += SIC_Program[i].object_Code;//串接物件碼
+            if (line_Object_Code.length() +SIC_Program[i+1].object_Code.length()>60 || SIC_Program[i + 1].object_Code == "" || SIC_Program[i + 1].mnemonic_Opcode == "END")//若長度達到極限(加上下一筆超過60個字元/30BYTE) 或是下一行並無物件碼/為END則輸出 
             {
                 objectcode << "T" << uppercase << setw(6) << setfill('0') << hex << line_Start_Address << setw(2) << setfill('0') << hex << line_Object_Code.length() / 2 << line_Object_Code<<endl;
+                //重置資料
                 line_Start_Address = -1;
                 line_Object_Code = "";
             }
         }
-        objectcode << uppercase << SIC_Program[SIC_Program.size() - 1].object_Code;
+        objectcode << uppercase << SIC_Program[SIC_Program.size() - 1].object_Code;//輸出E紀錄
         objectcode.close();
         output.close();
         loc.close();
