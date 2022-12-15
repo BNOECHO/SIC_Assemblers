@@ -111,7 +111,7 @@ public:
         if(isDirectives==false)
         {
             int addressing_Mode = 0;
-            if (operands!="" && operands[operands.length() - 1] == ',')//若倒數第二個為','(,X結尾 不會出現其他例外) 將索引定址模式設為1(0x8000) 
+            if (operands!="" && operands[operands.length() - 2] == ',')//若倒數第二個為','(,X結尾 不會出現其他例外) 將索引定址模式設為1(0x8000) 
             {
                 stringstream ss;
                 ss << operands;
