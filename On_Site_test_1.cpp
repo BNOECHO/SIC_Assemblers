@@ -35,7 +35,7 @@ public:
     }
     void print()//偵錯用
     {
-        cout << hex << address;
+        cout<< setw(4) << setfill('0') << hex << address;
         cout << "\t" << address_Label << "\t" << mnemonic_Opcode << "\t" << operands << "\t" << object_Code << endl;
     }
     void pass1()//計算位置存入SYSTAB 處理虛指令
@@ -58,7 +58,7 @@ public:
             stringstream ss;
             start_Address= stoi(operands, 0, 16);
             address = start_Address;
-            ss << "H"<< setw(6) << setfill(' ') << left<<address_Label << setw(6) << setfill('0') << hex<<right << start_Address;
+            ss << "H"<< setw(6) << setfill(' ') << left<<address_Label<< setw(6) << setfill('0') << hex<<right << start_Address;
             getline(ss,object_Code);
             return stoi(operands, 0, 16);//將operands以16進制解讀 並回傳/載入到第二個參數位置中(未使用到故填入NULL(0))
         }
@@ -170,5 +170,6 @@ int main()
         output.close();
         loc.close();
     }
+    cin.get();
     return 0;
 }
